@@ -60,7 +60,7 @@ jobs:
             - /home/circleci/.sbt
 
       - run:
-          command: sbt compile
+          command: sbt +compile
           no_output_timeout: 20m
 
       - persist_to_workspace:
@@ -112,7 +112,7 @@ jobs:
           command: echo "concurrentRestrictions in Global += Tags.limit(Tags.Test, 2)" > parallelism.sbt
 
       - run:
-          command: sbt test
+          command: sbt +test
 
       - store_test_results:
           path: target/test-reports
@@ -134,7 +134,7 @@ jobs:
 
       - run:
           name: Publish artifect to bintray
-          command: sbt publish
+          command: sbt +publish
           no_output_timeout: 20m
 
 
