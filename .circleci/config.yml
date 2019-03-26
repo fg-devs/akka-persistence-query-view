@@ -1,0 +1,157 @@
+version: 2.1
+
+defaults:
+
+  # Helpers
+
+  - &restore-cache
+    restore_cache:
+      keys:
+        - dependencies-{{ .Branch }}-{{ checksum "build.sbt" }}
+        - dependencies-{{ .Branch }}
+        - dependencies
+
+  - &add-github-host-ssh-key
+    run:
+      name: Configure git credentials
+      command: |
+        echo 'Adding the github host SSH key...'
+        mkdir -p -m 0700 ~/.ssh/
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+  - &configure-git-credentials
+    run:
+      name: Configure git credentials
+      command: |
+        git config user.name ovo-comms-circleci
+        git config user.email "hello.comms@ovoenergy.com"
+
+executors:
+  docker-executor:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    environment:
+      JAVA_OPTS: "-Xmx1g -Xss2m -XX:MaxMetaspaceSize=1g -XX:MetaspaceSize=1g -XX:+CMSClassUnloadingEnabled"
+      DEFAULT_AWS_REGION: "eu-west-1"
+      AWS_REGION: "eu-west-1"
+
+jobs:
+
+  # Shared tasks
+
+  build:
+
+    executor: docker-executor
+
+    steps:
+
+      - checkout
+
+      - *restore-cache
+
+      - run:
+          command: sbt update
+          no_output_timeout: 20m
+
+      - save_cache:
+          key: dependencies-{{ .Branch }}-{{ checksum "build.sbt" }}
+          paths:
+            - /home/circleci/.ivy2
+            - /home/circleci/.sbt
+
+      - run:
+          command: sbt compile
+          no_output_timeout: 20m
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target
+            - project/target
+            - project/project/target
+
+  tag:
+
+    executor: docker-executor
+
+    steps:
+
+      - checkout
+
+      - attach_workspace:
+          at: .
+
+      - *add-github-host-ssh-key
+
+      - *configure-git-credentials
+
+      - run:
+          command: "build/tag.sh"
+
+      # Update the workspace to make sure the git tags are available to the
+      # downstream jobs
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .git
+
+  unit_test:
+
+    executor: docker-executor
+
+    steps:
+
+      - checkout
+
+      - *restore-cache
+
+      - attach_workspace:
+          at: .
+
+      - run:
+          command: echo "concurrentRestrictions in Global += Tags.limit(Tags.Test, 2)" > parallelism.sbt
+
+      - run:
+          command: sbt test
+
+      - store_test_results:
+          path: target/test-reports
+
+  publish:
+    executor: docker-executor
+
+    steps:
+
+      - setup_remote_docker:
+          docker_layer_caching: true
+
+      - checkout
+
+      - *restore-cache
+
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Publish artifect to bintray
+          command: sbt publish
+          no_output_timeout: 20m
+
+
+workflows:
+  main:
+    jobs:
+      - build
+      - unit_test:
+          requires:
+            - build
+      - tag:
+          requires:
+            - unit_test
+          filters:
+            branches:
+              only: master
+
+      - publish:
+          requires:
+            - tag
