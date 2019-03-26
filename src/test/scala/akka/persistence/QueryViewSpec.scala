@@ -5,6 +5,7 @@ import akka.contrib.persistence.query.LevelDbQuerySupport
 import akka.pattern._
 import akka.persistence.QueryView.ForceUpdate
 import akka.persistence.journal.Tagged
+import akka.persistence.query.Offset
 import akka.stream.scaladsl.Source
 import akka.testkit.TestProbe
 import akka.util.Timeout
@@ -67,7 +68,9 @@ class QueryViewSpec extends UnitSpec with ConfigFixture with AkkaFixture with Ak
           assertGetMessages(Seq("test-1-1", "test-1-2", "test-1-3", "test-1-4"))
         }
 
-        "receives events from new recoverystream on force update" in new PersistenceIdQueryViewContextOnlyRecoveryStream("test-1") {
+        "receives events from new recoverystream on force update" in new PersistenceIdQueryViewContextOnlyRecoveryStream(
+          "test-1"
+        ) {
 
           writeToJournal("test-1", Tagged("test-1-1", Set("one")))
           writeToJournal("test-1", Tagged("test-1-2", Set("two")))
@@ -249,13 +252,12 @@ class QueryViewSpec extends UnitSpec with ConfigFixture with AkkaFixture with Ak
       probe.send(underTest, ForceUpdate)
     }
 
-    def assertGetMessages(messages: Seq[String], update: Boolean = false): Assertion = {
+    def assertGetMessages(messages: Seq[String], update: Boolean = false): Assertion =
       eventually {
         if (update) forceUpdate()
         val receivedMessages = underTest.ask(GetMessage).mapTo[Vector[String]].futureValue
         receivedMessages should contain theSameElementsInOrderAs messages
       }
-    }
   }
 
   class PersistenceIdQueryViewContext(persistenceId: String) extends QueryViewContext {
