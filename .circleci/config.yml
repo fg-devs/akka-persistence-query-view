@@ -64,6 +64,7 @@ jobs:
           no_output_timeout: 20m
 
       - run:
+          name: Validate code is formatted using scalamt
           command: 'sbt validateCode || (echo "[error] ERROR: Scalafmt test failed. To fix, format your sources using "sbt scalafmtAll scalafmtSbt" before submitting a pull request."; false)'
           no_output-timeout: 20m
 
