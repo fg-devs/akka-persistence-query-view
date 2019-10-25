@@ -63,6 +63,10 @@ jobs:
           command: sbt +compile
           no_output_timeout: 20m
 
+      - run:
+          command: 'sbt validateCode || (echo "[error] ERROR: Scalafmt test failed."; false)'
+          no_output-timeout: 20m
+
       - persist_to_workspace:
           root: .
           paths:

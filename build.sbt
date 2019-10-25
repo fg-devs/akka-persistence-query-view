@@ -1,11 +1,12 @@
 import Dependencies._
 import com.typesafe.sbt.GitPlugin.autoImport._
-import com.typesafe.sbt.{GitBranchPrompt, GitVersioning}
 import com.typesafe.sbt.git._
-import de.heikoseeberger.sbtheader.license.Apache2_0
+import com.typesafe.sbt.{GitBranchPrompt, GitVersioning}
+import de.heikoseeberger.sbtheader.License.ALv2
+import de.heikoseeberger.sbtheader._
 
 lazy val `akka-persistence-query-view` = (project in file("."))
-  .enablePlugins(GitVersioning, GitBranchPrompt, BuildInfoPlugin)
+  .enablePlugins(GitVersioning, GitBranchPrompt, BuildInfoPlugin, TutPlugin)
   .settings(
     organization := "com.ovoenergy",
     organizationHomepage := Some(url("https://www.ovoenergy.com/")),
@@ -32,8 +33,8 @@ lazy val `akka-persistence-query-view` = (project in file("."))
     git.runner := ConsoleGitRunner,
     git.baseVersion := "0.1.0",
     git.useGitDescribe := true,
-    scalaVersion := "2.12.1",
-    crossScalaVersions := Seq(scalaVersion.value, "2.11.8"),
+    scalaVersion := "2.13.1",
+    crossScalaVersions := Seq("2.11.12", "2.12.10", scalaVersion.value),
     resolvers ++= Seq(Resolver.mavenLocal, Resolver.typesafeRepo("releases")),
     // THe scaladoc is causing issue when generating doc around the snapshot format
     publishArtifact in (Compile, packageDoc) := false,
@@ -55,15 +56,15 @@ lazy val `akka-persistence-query-view` = (project in file("."))
       logback.classic % Test,
       LevelDb.levelDb % Test
     ),
-    headers := Map(
-      "java" -> Apache2_0("2016", "OVO Energy"),
-      "proto" -> Apache2_0("2016", "OVO Energy", "//"),
-      "scala" -> Apache2_0("2016", "OVO Energy"),
-      "conf" -> Apache2_0("2016", "OVO Energy", "#")
+    headerLicense := Some(ALv2("2016", "OVO Energy")),
+    headerMappings ++= Map(
+      FileType("proto") -> CommentStyle.cppStyleLineComment,
+      FileType("conf") -> CommentStyle.hashLineComment
     ),
-    tutSettings,
     tutTargetDirectory := baseDirectory.value,
     bintrayOrganization := Some("ovotech"),
     bintrayRepository := "maven",
     bintrayPackageLabels := Seq("akka", "akka-persistence", "event-sourcing", "cqrs")
   )
+
+addCommandAlias("validateCode", ";scalafmtCheckAll;scalafmtSbtCheck")

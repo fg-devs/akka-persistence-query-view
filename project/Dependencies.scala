@@ -3,12 +3,12 @@ import sbt._
 object Dependencies {
 
   object typesafe {
-    val config = "com.typesafe" % "config" % "1.3.1"
+    val config = "com.typesafe" % "config" % "1.4.0"
   }
 
   object slf4j {
 
-    private val version = "1.7.22"
+    private val version = "1.7.28"
 
     val api = "org.slf4j" % "slf4j-api" % version
     val log4jOverSlf4j = "org.slf4j" % "log4j-over-slf4j" % version
@@ -17,14 +17,14 @@ object Dependencies {
   }
 
   object log4j {
-    private val version = "2.7"
+    private val version = "2.12.1"
 
     val log4jToSlf4j = "org.apache.logging.log4j" % "log4j-to-slf4j" % version
   }
 
   object logback {
 
-    private val version = "1.1.8"
+    private val version = "1.2.3"
 
     val core = "ch.qos.logback" % "logback-core" % version
     val classic = "ch.qos.logback" % "logback-classic" % version
@@ -32,38 +32,31 @@ object Dependencies {
 
   object akka {
 
-    private val version = "2.5.21"
+    private val version = "2.5.26"
 
     val actor = "com.typesafe.akka" %% "akka-actor" % version
-    val remote = "com.typesafe.akka" %% "akka-remote" % version
-    val cluster = "com.typesafe.akka" %% "akka-cluster" % version
     val slf4j = "com.typesafe.akka" %% "akka-slf4j" % version
-    val contrib = "com.typesafe.akka" %% "akka-contrib" % version
-    val clusterTools = "com.typesafe.akka" %% "akka-cluster-tools" % version
-    val clusterSharding = "com.typesafe.akka" %% "akka-cluster-sharding" % version
-    val clusterMetrics = "com.typesafe.akka" %% "akka-cluster-metrics" % version
     val persistence = "com.typesafe.akka" %% "akka-persistence" % version
     val protobuf = "com.typesafe.akka" %% "akka-protobuf" % version
     val persistenceQuery = "com.typesafe.akka" %% "akka-persistence-query" % version
-    val persistenceTck = "com.typesafe.akka" %% "akka-persistence-tck" % version
     val testKit = "com.typesafe.akka" %% "akka-testkit" % version
     val stream = "com.typesafe.akka" %% "akka-stream" % version
     val streamTestKit = "com.typesafe.akka" %% "akka-stream-testkit" % version
   }
 
-  val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
-  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.13.4"
+  val scalaTest = "org.scalatest" %% "scalatest" % "3.0.8"
+  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.2"
 
   object scalaMock {
 
-    private val version = "3.4.2"
+    private val version = "4.4.0"
 
-    val scalaTestSupport = "org.scalamock" %% "scalamock-scalatest-support" % version
+    val scalaTestSupport = "org.scalamock" %% "scalamock" % version
   }
 
   object LevelDb {
 
-    val levelDb = "org.iq80.leveldb" % "leveldb" % "0.9"
+    val levelDb = "org.iq80.leveldb" % "leveldb" % "0.12"
     val leveldbJni = "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
 
   }
