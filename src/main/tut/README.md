@@ -30,13 +30,13 @@ The first step is to define a `Querysupport` trait for your `ReadJournal` plugin
 ```tut:silent
 import akka.contrib.persistence.query.QuerySupport
 import akka.persistence.QueryView
-import akka.persistence.query.{Offset, PersistenceQuery}
+import akka.persistence.query.{PersistenceQuery, Sequence}
 import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
 
 trait LevelDbQuerySupport extends QuerySupport { this: QueryView =>
 
   override type Queries = LeveldbReadJournal
-  override def firstOffset: Offset = Offset.sequence(1L)
+  override def firstOffset: Sequence = Sequence(1L)
   override val queries: LeveldbReadJournal =
     PersistenceQuery(context.system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
 }
@@ -58,10 +58,10 @@ class PersonsQueryView extends QueryView with LevelDbQuerySupport {
 
   private var people: Set[Person] = Set.empty
 
-  override def recoveringStream(): Source[AnyRef, _] =
+  override def recoveringStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.currentEventsByTag("person", lastOffset)
 
-  override def liveStream(): Source[AnyRef, _] =
+  override def liveStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.eventsByTag("person", lastOffset)
 
   override def receive: Receive = {
@@ -93,10 +93,10 @@ class PersonsQueryView extends QueryView with LevelDbQuerySupport {
 
   private var people: Set[Person] = Set.empty
 
-  override def recoveringStream(): Source[AnyRef, _] =
+  override def recoveringStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.currentEventsByTag("person", lastOffset)
 
-  override def liveStream(): Source[AnyRef, _] =
+  override def liveStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.eventsByTag("person", lastOffset)
 
   override def receive: Receive = {
@@ -118,6 +118,15 @@ class PersonsQueryView extends QueryView with LevelDbQuerySupport {
 ```
 
 Under the hood it will store also the last consumed offset and the last sequence number for each persistence id already consumed.
+
+The QueryView checks that all received events follow a strict sequence per persistentId. Be aware that most journal plugins do not guarantee the correct order for `eventsByTag` (see journal documentation). 
+If that is ok one can overwrite `override def allowOutOfOrderEvents = true` to omit the checking. (In the future we might implement some deferred processing of out of order received events)
+
+### Forced Update
+Most journals use some sort of polling under the hood to support a live stream for `eventsByTag/eventsByPersistentId` PersistentQueries. (The default cassandra journal uses 3 seconds)
+In scenarios when a more up to date state is needed one can issue a forced update which will immediately read from the recoveringStream. (Use `forceUpdate()` or send a ForceUpdate).
+The QueryView ensures forcedUpdate is not performed concurrently so forceUpdate is ignored while it has not completed. After forceUpdate is completed `onForceUpdateCompleted()` is called.
+For some scenarios it makes sense to retrigger `forceUpdate()` within `onForceUpdateCompleted()` until some condition is met.
 
 ## Future developments
  * Add the `recovery-timeout-strategy` option to control what to do when the view does ot recover within a certain amount of time.

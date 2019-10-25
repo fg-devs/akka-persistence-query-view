@@ -33,7 +33,7 @@ lazy val `akka-persistence-query-view` = (project in file("."))
     git.runner := ConsoleGitRunner,
     git.baseVersion := "0.1.0",
     git.useGitDescribe := true,
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.0", // 2.13.1 blocked by https://github.com/tpolecat/tut/issues/263 (switch to mdoc instead as tut is deprecated)
     crossScalaVersions := Seq("2.11.12", "2.12.10", scalaVersion.value),
     resolvers ++= Seq(Resolver.mavenLocal, Resolver.typesafeRepo("releases")),
     // THe scaladoc is causing issue when generating doc around the snapshot format

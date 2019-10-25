@@ -30,13 +30,13 @@ The first step is to define a `Querysupport` trait for your `ReadJournal` plugin
 ```scala
 import akka.contrib.persistence.query.QuerySupport
 import akka.persistence.QueryView
-import akka.persistence.query.{Offset, PersistenceQuery}
+import akka.persistence.query.{PersistenceQuery, Sequence}
 import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
 
 trait LevelDbQuerySupport extends QuerySupport { this: QueryView =>
 
   override type Queries = LeveldbReadJournal
-  override def firstOffset: Offset = Offset.sequence(1L)
+  override def firstOffset: Sequence = Sequence(1L)
   override val queries: LeveldbReadJournal =
     PersistenceQuery(context.system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
 }
@@ -58,10 +58,10 @@ class PersonsQueryView extends QueryView with LevelDbQuerySupport {
 
   private var people: Set[Person] = Set.empty
 
-  override def recoveringStream(): Source[AnyRef, _] =
+  override def recoveringStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.currentEventsByTag("person", lastOffset)
 
-  override def liveStream(): Source[AnyRef, _] =
+  override def liveStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.eventsByTag("person", lastOffset)
 
   override def receive: Receive = {
@@ -93,10 +93,10 @@ class PersonsQueryView extends QueryView with LevelDbQuerySupport {
 
   private var people: Set[Person] = Set.empty
 
-  override def recoveringStream(): Source[AnyRef, _] =
+  override def recoveringStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.currentEventsByTag("person", lastOffset)
 
-  override def liveStream(): Source[AnyRef, _] =
+  override def liveStream(sequenceNrByPersistenceId: Map[String, Long], lastOffset: OT): Source[AnyRef, _] =
     queries.eventsByTag("person", lastOffset)
 
   override def receive: Receive = {
