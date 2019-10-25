@@ -64,7 +64,7 @@ jobs:
           no_output_timeout: 20m
 
       - run:
-          command: 'sbt validateCode || (echo "[error] ERROR: Scalafmt test failed."; false)'
+          command: 'sbt validateCode || (echo "[error] ERROR: Scalafmt test failed. To fix, format your sources using "sbt scalafmtAll scalafmtSbt" before submitting a pull request."; false)'
           no_output-timeout: 20m
 
       - persist_to_workspace:

@@ -45,7 +45,7 @@ class QueryViewSnapshotSerializer(val system: ExtendedActorSystem) extends BaseS
 
   private def toBinary(o: AnyRef, out: OutputStream): Unit = o match {
     case qvs: QueryViewSnapshot[_] => serializeQueryViewSnapshot(qvs, out)
-    case _ => throw new IllegalArgumentException(s"Can't serialize object of type ${o.getClass}")
+    case _                         => throw new IllegalArgumentException(s"Can't serialize object of type ${o.getClass}")
   }
 
   override def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef =
@@ -64,10 +64,10 @@ class QueryViewSnapshotSerializer(val system: ExtendedActorSystem) extends BaseS
       case (persistenceId, sequenceNr) =>
         builder.addSequenceNrs(
           QueryViewFormats.QueryViewSnapshot.SequenceNrEntry
-              .newBuilder()
-              .setPersistenceId(persistenceId)
-              .setSequenceNr(sequenceNr)
-              .build()
+            .newBuilder()
+            .setPersistenceId(persistenceId)
+            .setSequenceNr(sequenceNr)
+            .build()
         )
     }
 
